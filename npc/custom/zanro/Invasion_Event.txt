@@ -1,0 +1,658 @@
+//===== Hercules Script ======================================
+//= Invasion Event
+//===== By: ==================================================
+//= ZelosAvalon
+//===== Current Version: =====================================
+//= 1.5
+//===== Description: =========================================
+//= 1.0	Automatic invasion by random MVPs and Monsters in a random town with reward drop by MVP 
+//	and points earn by each Event Monster killed by you. [ZelosAvalon]
+//===== Additional Comments: =================================
+//= 1.1 Now you can choose which MVP, Monster will spawned and what Reward 
+//=	the Event will give you, and which map you want to start the Invasion Event.
+//=	GM can stop the event any time, normal player can teleport to the map where's events running. [ZelosAvalon]
+//= 1.2 Now you have two options by start Invasion Event:
+//=	Standard Invasion (where you have some options of Invasions pre-defined)
+//=	Custom Invasion (where you can choose which MVP, Monster and Reward the Event will give you, 
+//=	and which map you want to start the event). [ZelosAvalon]
+//= 1.3 Now the event has added a limit for spawning monsters on each map, to prevent LAG.
+//=     Maximum monster can be spawned is 500 and the minimum is 20. [ZelosAvalon]
+//= 1.4 Now you have more two options in the event:
+//=	Current Configuration (where you can set in the Invasion Event the configuration for the next event)
+//=	Reset Configuration (where you can reset the Invasion Configuration set by you). [ZelosAvalon]
+//= 1.5 Now we merge the event_points previously saved in a variable in the account (Ex:. #Event_Points) for a SQL table
+//=	Along with the SQL table added a new NPC: [Event Helper], where you can check how many Event Points you have, 
+//=	exchange them for items and check their position in the ranking of the event.[ZelosAvalon]
+//============================================================
+
+prontera,148,178,5	script	Event Invasion	8W_SOLDIER,{
+
+set .GM,4;//GM Level to access the GM Menu. Default: 50
+
+function Go {
+	warp getarg(0),getarg(1,0),getarg(2,0);
+	getmapxy(lastwarp$,lastwarpx,lastwarpy,0);
+	end;
+}
+
+	// If a player clicks the NPC, it displays:
+	if (getgmlevel()<.GM){
+		if (.mobs_left) == 0{
+		mes "[Event Invasion]";
+		mes "We haven't monster invasion at the moment";
+		mes "All the Cities in Rune Midgard are safe!";
+		close;
+		}
+	mes "[Event Invasion]";
+	mes "Help us!!! "+.mobs_left+" "+getmonsterinfo(.MobID,0)+" have invaded "+.Map$+"!";
+	next;
+	mes "You want, I teleport you to "+.Map$+"?";
+		switch(select("Yes:No")) {
+		case 1:
+			mes "[Event Invasion]";
+			mes "Teleporting ...";
+			if (.Map$) == "prontera" {
+			Go("prontera",155,183);
+			}
+			if (.Map$) == "alberta" {
+			Go("alberta",28,234);
+			}
+			if (.Map$) == "aldebaran" {
+			Go("aldebaran",140,131);
+			}
+			if (.Map$) == "amatsu" {
+			Go("amatsu",198,84);
+			}
+			if (.Map$) == "ayothaya" {
+			Go("ayothaya",208,166);
+			}
+			if (.Map$) == "brasilis" {
+			Go("brasilis",196,217);
+			}
+			if (.Map$) == "comodo" {
+			Go("comodo",209,143);
+			}
+			if (.Map$) == "dewata" {
+			Go("dewata",200,180);
+			}
+			if (.Map$) == "ecl_in01" {
+			Go("ecl_in01",48,53);
+			}
+			if (.Map$) == "einbech" {
+			Go("einbech",63,35);
+			}
+			if (.Map$) == "einbroch" {
+			Go("einbroch",64,200);
+			}
+			if (.Map$) == "dicastes01" {
+			Go("dicastes01",198,187);
+			}
+			if (.Map$) == "geffen" {
+			Go("geffen",119,59);
+			}
+			if (.Map$) == "gonryun" {
+			Go("gonryun",160,120);
+			}
+			if (.Map$) == "hugel" {
+			Go("hugel",96,145);
+			}
+			if (.Map$) == "izlude" {
+			Go("izlude",128,114);
+			}
+			if (.Map$) == "jawaii" {
+			Go("jawaii",251,132);
+			}
+			if (.Map$) == "lighthalzen" {
+			Go("lighthalzen",158,92);
+			}
+			if (.Map$) == "louyang" {
+			Go("louyang",217,100);
+			}
+			if (.Map$) == "xmas" {
+			Go("xmas",147,134);
+			}
+			if (.Map$) == "malangdo" {
+			Go("malangdo",140,114);
+			}
+			if (.Map$) == "malaya" {
+			Go("malaya",212,206);
+			}
+			if (.Map$) == "manuk" {
+			Go("manuk",282,138);
+			}
+			if (.Map$) == "mid_camp" {
+			Go("mid_camp",210,288);
+			}
+			if (.Map$) == "mora" {
+			Go("mora",55,146);
+			}
+			if (.Map$) == "morocc" {
+			Go("morocc",156,93);
+			}
+			if (.Map$) == "moscovia" {
+			Go("moscovia",223,184);
+			}
+			if (.Map$) == "nameless_n" {
+			Go("nameless_n",256,215);
+			}
+			if (.Map$) == "niflheim" {
+			Go("niflheim",202,174);
+			}
+			if (.Map$) == "payon" {
+			Go("payon",179,100);
+			}
+			if (.Map$) == "rachel" {
+			Go("rachel",130,110);
+			}
+			if (.Map$) == "splendide" {
+			Go("splendide",201,147);
+			}
+			if (.Map$) == "thor_camp" {
+			Go("thor_camp",246,68);
+			}
+			if (.Map$) == "umbala" {
+			Go("umbala",97,153);
+			}
+			if (.Map$) == "veins" {
+			Go("veins",216,123);
+			}
+			if (.Map$) == "yuno" {
+			Go("yuno",157,51);
+			}
+		case 2:
+			close;
+		}
+	}
+	// GM menu 
+	//It allows GMs Level 50 or more to Start and Stop invasions.
+	if (getgmlevel()>.GM) {
+		if (.mobs_left) {
+			mes "[Event Invasion]";
+			mes "An invasion is in progress..";
+			mes "Location: " + .Map$;
+			mes "^FF0000" +.mobs_left+ " : ^000000" + getmonsterinfo(.MobID,0) + " left ";
+			mes " ";
+			mes "^FF0000Stop invasion?^000000";
+			if(select("No:Yes")==1) close;
+			donpcevent "Event Invasion::OnEventEnd";
+			next;
+			mes "[Event Invasion]";
+			mes "^FF0000Invasion has been stopped^000000";
+			announce "The Invasion has been stopped by "+strcharinfo(0),bc_all;
+			close;
+		}
+		Main:
+		mes "[Event Invasion]";
+		mes "Please customize the Invasion event before starting it.";
+		mes "^FF0000Note - The MVP drops a event item.^000000";
+		next;
+			switch(select("^3355FFStandard Invasion^000000:^3355FFCustom Invasion^000000:^3355FFCurrent Configuration^000000:^3355FFReset Configuration^000000:^3355FFStart Invasion^000000:^FF0000Nothing now^000000")) {
+			case 1:
+			mes "[Event Invasion]";
+			mes "Please choose the type of Invasion Event you want to start.";
+			mes "^FF0000Note - The MVP drops a event item.^000000";
+			next;
+			switch(select("^3355FF1^000000 - ^FF0000Baphomet^000000:^3355FF2^000000 - ^FF0000Doppelganger^000000:^3355FF3^000000 - ^FF0000Eddga^000000:^3355FF4^000000 - ^FF0000Garm^000000:^3355FF5^000000 - ^FF0000Orc Hero^000000:^3355FF6^000000 - ^FF0000Osires^000000:^3355FF7^000000 - ^FF0000Turtle General^000000:^3355FFBack to Menu^000000")) {
+					case 1:
+						set .MvpID,"2100";
+						set .ItemID,"5518";
+						set .MobID,"1431";
+						mes "Map for Invasion?";
+						mes "Please choose the map for the Event:";
+						next;
+						goto SelectTown;
+						
+					case 2:
+						set .MvpID,"2098";
+						set .ItemID,"5151";
+						set .MobID,"1427";
+						mes "Map for Invasion?";
+						mes "Please choose the map for the Event:";
+						next;
+						goto SelectTown;
+						
+					case 3:
+						set .MvpID,"2095";
+						set .ItemID,"5497";
+						set .MobID,"1603";
+						mes "Map for Invasion?";
+						mes "Please choose the map for the Event:";
+						next;
+						goto SelectTown;
+
+					case 4:
+						set .MvpID,"1252";
+						set .ItemID,"5610";
+						set .MobID,"1606";
+						mes "Map for Invasion?";
+						mes "Please choose the map for the Event:";
+						goto SelectTown;
+						
+					case 5:
+						set .MvpID,"2094";
+						set .ItemID,"5375";
+						set .MobID,"1439";
+						mes "Map for Invasion?";
+						mes "Please choose the map for the Event:";
+						next;
+						goto SelectTown;
+						
+					case 6:
+						set .MvpID,"2096";
+						set .ItemID,"5490";
+						set .MobID,"1393";
+						mes "Map for Invasion?";
+						mes "Please choose the map for the Event:";
+						next;
+						goto SelectTown;
+						
+					case 7:
+						set .MvpID,"2105";
+						set .ItemID,"5611";
+						set .MobID,"1364";
+						mes "Map for Invasion?";
+						mes "Please choose the map for the Event:";
+						next;
+						goto SelectTown;
+					case 8:
+						goto Main;
+					}
+			case 2:
+			mes "[Event Invasion]";
+			mes "Please customize the Invasion event before starting it.";
+			mes "Note - The MVP drops a event item.";
+			next;
+				switch(select("^3355FFMap^000000 [^3CB371"+.Map$+"^000000]:^3355FFMVP^000000 [^3CB371"+getmonsterinfo(.MvpID,0)+"^000000]:^3355FFMVP Reward^000000 [^3CB371"+getitemname(.ItemID)+"^000000]:^3355FFMonster^000000 [^3CB371"+getmonsterinfo(.MobID,0)+"^000000]:^3355FFAmount of Monsters^000000 [^3CB371"+.MobX+"^000000]:^FF0000Start Event^000000:^3355FFBack to Menu^000000")) {
+					case 1:
+						mes "Map for Invasion?";
+						mes "Please choose the map for the Event:";
+						next;
+						switch(select("Prontera:Alberta:Aldebaran:Amatsu:Ayothaya:Brasilis:Comodo:Dewata:Eclage:Einbech:Einbroch:El Dicastes:Geffen:Gonryun:Hugel:Izlude:Jawaii:Lighthalzen:Louyang:Lutie:Malangdo:Malaya:Manuk:Midgarts Expedition Camp:Mora:Morroc:Moscovia:Nameless Island:Niflheim:Payon:Rachel:Splendide:Thor Camp:Umbala:Veins:Yuno")){
+						case 1: 
+						set .Map$,"prontera";
+						goto Main;
+						case 2: 
+						set .Map$,"alberta";
+						goto Main;
+						case 3: 
+						set .Map$,"aldebaran";
+						goto Main;
+						case 4: 
+						set .Map$,"amatsu";
+						goto Main;
+						case 5: 
+						set .Map$,"ayothaya";
+						goto Main;
+						case 6: 
+						set .Map$,"brasilis";
+						goto Main;
+						case 7: 
+						set .Map$,"comodo";
+						goto Main;
+						case 8: 
+						set .Map$,"dewata";
+						goto Main;
+						case 9: 
+						set .Map$,"eclage";
+						goto Main;
+						case 10: 
+						set .Map$,"einbech";
+						goto Main;
+						case 11: 
+						set .Map$,"einbroch";
+						goto Main;
+						case 12: 
+						set .Map$,"dicastes01";
+						goto Main;
+						case 13: 
+						set .Map$,"geffen";
+						goto Main;
+						case 14: 
+						set .Map$,"gonryun";
+						goto Main;
+						case 15: 
+						set .Map$,"hugel";
+						goto Main;
+						case 16: 
+						set .Map$,"izlude";
+						goto Main;
+						case 17: 
+						set .Map$,"jawaii";
+						goto Main;
+						case 18: 
+						set .Map$,"lighthalzen";
+						goto Main;
+						case 19: 
+						set .Map$,"louyang";
+						goto Main;
+						case 20: 
+						set .Map$,"xmas";
+						goto Main;
+						case 21: 
+						set .Map$,"malangdo";
+						goto Main;
+						case 22: 
+						set .Map$,"malaya";
+						goto Main;
+						case 23: 
+						set .Map$,"manuk";
+						goto Main;
+						case 24: 
+						set .Map$,"mid_camp";
+						goto Main;
+						case 25: 
+						set .Map$,"mora";
+						goto Main;
+						case 26: 
+						set .Map$,"morocc";
+						goto Main;
+						case 27: 
+						set .Map$,"moscovia";
+						goto Main;
+						case 28: 
+						set .Map$,"nameless_n";
+						goto Main;
+						case 29: 
+						set .Map$,"niflheim";
+						goto Main;
+						case 30: 
+						set .Map$,"payon";
+						goto Main;
+						case 31: 
+						set .Map$,"rachel";
+						goto Main;
+						case 32: 
+						set .Map$,"splendide";
+						goto Main;
+						case 33: 
+						set .Map$,"thor_camp";
+						goto Main;
+						case 34: 
+						set .Map$,"umbala";
+						goto Main;
+						case 35: 
+						set .Map$,"veins";
+						goto Main;
+						case 36: 
+						set .Map$,"yuno";
+						goto Main;
+						}
+					case 2:
+						mes "What MVP would you like to summom?";
+						mes "Please input the MVP ID:";
+						next;
+						input .MvpID;
+						goto Main;
+					case 3:
+						mes "Which item would you like the MVP to drop?";
+						mes "Please input the amount of monster you want to summon:";
+						next;
+						input .ItemID;
+						goto Main;
+					case 4:
+						mes "What monster would you like to summom ?";
+						mes "Please input the Monster ID:";
+						next;
+						input .MobID;
+						goto Main;
+					case 5:
+						mes "Who many monster would you like to summom ?";
+						mes "Please input the item ID:";
+						next;
+						input .MobX;
+						goto Main;
+					case 6:
+						mes "Starting the event now...";
+						close2;
+						goto OnStart;
+					case 7:
+					goto EventConf;
+					}
+			case 3:
+				goto EventConf;
+			case 4:
+				donpcevent "Event Invasion::OnCleanEvent";
+				goto EventConf;
+			case 5:
+				mes "Starting the event now...";
+				close2;
+				goto OnStart;
+			case 6:
+				close;
+		}
+		end;
+	
+			/////////////////////////
+			//The actual NPC Script//
+			/////////////////////////
+EventConf:
+	mes "^7733ff[Event Configuration]^000000";
+	mes "^3355FFMap:^000000 [^3CB371"+.Map$[0]+"^000000]";
+	mes "^3355FFMVP:^000000 [^3CB371"+getmonsterinfo(.MvpID,0)+"^000000]";
+	mes "^3355FFMVP Reward:^000000 [^3CB371"+getitemname(.ItemID)+"^000000]";
+	mes "^3355FFMonster:^000000 [^3CB371"+getmonsterinfo(.MobID,0)+"^000000]";
+	mes "^3355FFAmount of Monsters:^000000 [^3CB371"+.MobX+"^000000]";
+	next;
+	goto Main;
+	end;
+	
+SelectTown:
+switch(select("Prontera:Alberta:Aldebaran:Amatsu:Ayothaya:Brasilis:Comodo:Dewata:Eclage:Einbech:Einbroch:El Dicastes:Geffen:Gonryun:Hugel:Izlude:Jawaii:Lighthalzen:Louyang:Lutie:Malangdo:Malaya:Manuk:Midgarts Expedition Camp:Mora:Morroc:Moscovia:Nameless Island:Niflheim:Payon:Rachel:Splendide:Thor Camp:Umbala:Veins:Yuno")){
+case 1: 
+						set .Map$,"prontera";
+						goto MonsterAmount;
+						case 2: 
+						set .Map$,"alberta";
+						goto MonsterAmount;
+						case 3: 
+						set .Map$,"aldebaran";
+						goto MonsterAmount;
+						case 4: 
+						set .Map$,"amatsu";
+						goto MonsterAmount;
+						case 5: 
+						set .Map$,"ayothaya";
+						goto MonsterAmount;
+						case 6: 
+						set .Map$,"brasilis";
+						goto MonsterAmount;
+						case 7: 
+						set .Map$,"comodo";
+						goto MonsterAmount;
+						case 8: 
+						set .Map$,"dewata";
+						goto MonsterAmount;
+						case 9: 
+						set .Map$,"eclage";
+						goto MonsterAmount;
+						case 10: 
+						set .Map$,"einbech";
+						goto MonsterAmount;
+						case 11: 
+						set .Map$,"einbroch";
+						goto MonsterAmount;
+						case 12: 
+						set .Map$,"dicastes01";
+						goto MonsterAmount;
+						case 13: 
+						set .Map$,"geffen";
+						goto MonsterAmount;
+						case 14: 
+						set .Map$,"gonryun";
+						goto MonsterAmount;
+						case 15: 
+						set .Map$,"hugel";
+						goto MonsterAmount;
+						case 16: 
+						set .Map$,"izlude";
+						goto MonsterAmount;
+						case 17: 
+						set .Map$,"jawaii";
+						goto MonsterAmount;
+						case 18: 
+						set .Map$,"lighthalzen";
+						goto MonsterAmount;
+						case 19: 
+						set .Map$,"louyang";
+						goto MonsterAmount;
+						case 20: 
+						set .Map$,"xmas";
+						goto MonsterAmount;
+						case 21: 
+						set .Map$,"malangdo";
+						goto MonsterAmount;
+						case 22: 
+						set .Map$,"malaya";
+						goto MonsterAmount;
+						case 23: 
+						set .Map$,"manuk";
+						goto MonsterAmount;
+						case 24: 
+						set .Map$,"mid_camp";
+						goto MonsterAmount;
+						case 25: 
+						set .Map$,"mora";
+						goto MonsterAmount;
+						case 26: 
+						set .Map$,"morocc";
+						goto MonsterAmount;
+						case 27: 
+						set .Map$,"moscovia";
+						goto MonsterAmount;
+						case 28: 
+						set .Map$,"nameless_n";
+						goto MonsterAmount;
+						case 29: 
+						set .Map$,"niflheim";
+						goto MonsterAmount;
+						case 30: 
+						set .Map$,"payon";
+						goto MonsterAmount;
+						case 31: 
+						set .Map$,"rachel";
+						goto MonsterAmount;
+						case 32: 
+						set .Map$,"splendide";
+						goto MonsterAmount;
+						case 33: 
+						set .Map$,"thor_camp";
+						goto MonsterAmount;
+						case 34: 
+						set .Map$,"umbala";
+						goto MonsterAmount;
+						case 35: 
+						set .Map$,"veins";
+						goto MonsterAmount;
+						case 36: 
+						set .Map$,"yuno";
+						goto MonsterAmount;
+						}
+						end;
+// Times to Start and End of Event
+OnClock0000: goto OnStart; //Start Event
+OnClock0030: goto OnEventEnd; //End Event
+end;
+OnClock0800: goto OnStart; //Start Event
+OnClock0830: goto OnEventEnd; //End Event
+end;
+OnClock1130: goto OnStart; //Start Event
+OnClock1132: goto OnEventEnd; //End Event
+end;;
+OnClock1600: goto OnStart; //Start Event
+OnClock1630: goto OnEventEnd; //End Event
+end;
+									
+MonsterAmount: // Menu select amount of monster event will summon
+	mes "Who many monster would you like to summom ?";
+	mes "Please input the number of monster you want to summom:";
+	mes "^FF0000NOTE: Event can summon a maximum of 500 Monsters^000000";
+	next;
+	input .MobX; 
+		if (.MobX) > 500 {
+		mes "^FF0000Event can't summon that amount of Monsters^000000";
+		mes "^FF0000Event can summon a maximum of 500 Monsters^000000";
+		next;
+		goto MonsterAmount;
+		}
+		if (.MobX) < 20 {
+		mes "^FF0000Event can't summon that amount of Monsters^000000";
+		mes "^FF0000The minimum that can be summoned is 20 Monsters^000000";
+		next;
+		goto MonsterAmount;
+		}
+	goto OnEventStart;
+	
+OnEventStart: // Menu Start Event
+	mes "[Event Invasion]";
+	mes "^3355FFMap:^000000 [^3CB371"+.Map$[0]+"^000000]";
+	mes "^3355FFMVP:^000000 [^3CB371"+getmonsterinfo(.MvpID,0)+"^000000]";
+	mes "^3355FFMVP Reward:^000000 [^3CB371"+getitemname(.ItemID)+"^000000]";
+	mes "^3355FFMonster:^000000 [^3CB371"+getmonsterinfo(.MobID,0)+"^000000]";
+	mes "^3355FFAmount of Monsters:^000000 [^3CB371"+.MobX+"^000000]";
+	mes "^FF0000Start Event now?^000000";
+	switch(select("Yes:No")){
+		case 1:
+		next;
+		mes "^FF0000Starting the event...^000000";
+		close2;
+		goto OnStart;
+		case 2:
+		next;
+		mes "Ok, start just when you're sure!";
+		close2;
+		goto EventConf;
+	}
+	end;
+	
+OnStart:
+	set .mobs_left, .MobX;
+	sleep2 1000;
+	announce "[ Rune-Midgard Guard ]: We have trouble here in the town " + .Map$ + "!", bc_all;
+	sleep2 5000;
+	announce "[ Rune-Midgard Guard ]: Everyone, we need your help to get rid of these "+getmonsterinfo(.MobID,0)+"!", bc_all;
+	set .mobs_left, .MobX;
+	monster .Map$,0,0,getmonsterinfo(.MobID,0) +" [Event] ",.MobID,.MobX,strnpcinfo(3) + "::OnMyMobDead";
+	end;
+	
+OnEventEnd:	// 30 minutes later, kills all the mobs.
+	announce "[ Rune-Midgard Guard ]: The invasion was ended in the town " + .Map$ + "!", bc_all;
+	killmonster .Map$,"Event Invasion::OnMyMobDead";
+	killmonster .Map$,strnpcinfo(3) + "::OnSpecialMobDead";
+	set .mobs_left,0;
+	end;
+
+OnStop: // When the event is stopped by a GM, or all monsters dead.
+	killmonster .Map$,strnpcinfo(3) + "::OnMyMobDead";
+	killmonster .Map$,strnpcinfo(3) + "::OnSpecialMobDead";
+	announce "It seems that "+strcharinfo(0)+" has ended the Invasion!",bc_all;
+	set .mobs_left,0;
+	end;
+
+OnMyMobDead: //When a Monster is killed
+	set .mobs_left, .mobs_left-1;
+	if (.mobs_left==0) {
+		announce "[ Rune-Midgard Guard ]: "+getmonsterinfo(.MvpID,0)+" has spawned in " + .Map$ + "!", bc_all;
+		monster .Map$,0,0,getmonsterinfo(.MvpID,0),.MvpID,1,"Event Invasion::OnSpecialMobDead";
+	} else {
+		query_sql "INSERT INTO `event_rank`(`id`, `name`, `event_points`, `t_event_points`) VALUES ('"+getcharid(0)+"','"+strcharinfo(0)+"','1','1') ON DUPLICATE KEY UPDATE `event_points` = `event_points` + '1', `t_event_points` = `t_event_points` + '1'";
+		announce "["+.mobs_left+"/"+.MobX+"] Monster left.",bc_map;
+	}
+	end;
+
+OnSpecialMobDead:
+		query_sql "INSERT INTO `event_rank`(`id`, `name`, `event_points`, `t_event_points`) VALUES ('"+getcharid(0)+"','"+strcharinfo(0)+"','1','1') ON DUPLICATE KEY UPDATE `event_points` = `event_points` + '10', `t_event_points` = `t_event_points` + '10'";
+		announce strcharinfo(0)+" has fought off the "+ getmonsterinfo(.MobID,0) +" Invasion and has been awarded a worthy prize!", bc_all;
+		getitem .ItemID,1;
+		donpcevent "Event Invasion::OnStop";
+		donpcevent "Event Invasion::OnCleanEvent";
+	end;
+	
+OnCleanEvent:
+	set	.MobX,0;
+	set	.Map$,"null";
+	set	.MobID,"null";
+	set .MvpID,"null";
+	set .ItemID,"null";
+	}
+	end;
+}
